@@ -1,27 +1,37 @@
 import turtle
 import random
 
-# --- 1. GAME SETUP ---
+# --- 1. GAME & SCREEN SETUP ---
 screen = turtle.Screen()
-screen.title("Grid Clicker! 2-Minute Challenge")
+screen.title("Grid Clicker! Custom Grid Challenge")
 screen.bgcolor("#f7fafc")
 screen.setup(width=500, height=600)
 screen.tracer(0) # Turns off animations for instant drawing
+
+# Ask the player to choose a grid size (between 3 and 8)
+# If they cancel or close the popup, it defaults to 4
+grid_choice = screen.numinput("Grid Setup", "Enter grid size (3 to 8):", default=4, minval=3, maxval=8)
+if grid_choice is None:
+    grid_choice = 4
+else:
+    grid_choice = int(grid_choice)
 
 # Game state variables
 score = 0
 time_left = 120  # 2 minutes in seconds
 game_active = True
 
-GRID_SIZE = 100
-COLS = 3
-ROWS = 3
+# Dynamic Grid calculations based on player's choice
+ROWS = grid_choice
+COLS = grid_choice
+TOTAL_GRID_PIXELS = 300  # Total width/height of the playable area
+GRID_SIZE = TOTAL_GRID_PIXELS / grid_choice  # Dynamic size of each cell
 
-# Calculate start offsets to center a 300x300 grid
-start_x = -150
-start_y = -150
+# Calculate start offsets to center the grid perfectly
+start_x = -TOTAL_GRID_PIXELS / 2
+start_y = -TOTAL_GRID_PIXELS / 2
 
-# --- 2. DRAW THE GRID BACKGROUND ---
+# --- 2. DRAW THE CUSTOM GRID BACKGROUND ---
 grid_drawer = turtle.Turtle()
 grid_drawer.hideturtle()
 grid_drawer.speed(0)
@@ -65,18 +75,20 @@ def update_hud():
     screen.update()
 
 # --- 4. THE LIT-UP TARGET ---
-# We use a square-shaped turtle stretched to fit the grid cell
 target = turtle.Turtle()
 target.shape("square")
-# Default turtle size is 20x20 pixels. 4.75 * 20 = 95 pixels (leaves a nice tiny gap in a 100px grid cell)
-target.shapesize(4.75, 4.75) 
+
+# Scale the turtle square to match the dynamic grid cell size (default turtle shape size is 20x20 pixels)
+# We multiply by 0.95 to leave a tiny gap between cells so the grid lines stay visible
+scale_factor = (GRID_SIZE * 0.95) / 20
+target.shapesize(scale_factor, scale_factor) 
 target.color("#ecc94b")  # Bright golden yellow
 target.penup()
 target.speed(0)
 
 # Grid coordinate tracking
-current_col = 1
-current_row = 1
+current_col = -1
+current_row = -1
 
 def move_target():
     global current_col, current_row
